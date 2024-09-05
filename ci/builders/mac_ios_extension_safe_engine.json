@@ -18,7 +18,8 @@
                 "debug",
                 "--simulator",
                 "--no-lto",
-                "--darwin-extension-safe"
+                "--darwin-extension-safe",
+                "--no-prebuilt-dart-sdk"
             ],
             "name": "ios_debug_sim_extension_safe",
             "ninja": {
@@ -48,7 +49,8 @@
                 "--simulator",
                 "--simulator-cpu=arm64",
                 "--no-lto",
-                "--darwin-extension-safe"
+                "--darwin-extension-safe",
+                "--no-prebuilt-dart-sdk"
             ],
             "name": "ios_debug_sim_arm64_extension_safe",
             "ninja": {
@@ -72,7 +74,8 @@
                 "--ios",
                 "--runtime-mode",
                 "debug",
-                "--darwin-extension-safe"
+                "--darwin-extension-safe",
+                "--no-prebuilt-dart-sdk"
             ],
             "name": "ios_debug_extension_safe",
             "ninja": {
