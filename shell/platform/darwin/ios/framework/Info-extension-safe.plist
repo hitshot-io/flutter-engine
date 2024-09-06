@@ -23,7 +23,7 @@
   <key>MinimumOSVersion</key>
   <string>{min_version}</string>
   <key>FlutterEngine</key>
-  <string>{revision}</string>
+  <string>edd8546116457bdf1c5bdfb13ecb9463d2bb5ed4</string>
   <key>ClangVersion</key>
   <string>{clang_version}</string>
 </dict>
