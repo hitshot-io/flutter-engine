@@ -102,6 +102,12 @@ def main():
       '%s_extension_safe' % simulator_x64_out_dir, '%s_extension_safe' % simulator_arm64_out_dir
   )
 
+  alt_extension_safe_dst = os.path.join(dst, 'alt_extension_safe')
+  create_extension_safe_framework(
+      args, alt_extension_safe_dst, '%s_alt_extension_safe' % arm64_out_dir,
+      '%s_alt_extension_safe' % simulator_x64_out_dir, '%s_alt_extension_safe' % simulator_arm64_out_dir
+  )
+
   generate_gen_snapshot(args, dst, x64_out_dir, arm64_out_dir)
   zip_archive(dst)
   return 0
@@ -129,13 +135,36 @@ def create_extension_safe_framework( # pylint: disable=too-many-arguments
   )
   return 0
 
+def create_alt_extension_safe_framework( # pylint: disable=too-many-arguments
+    args, dst, arm64_out_dir, simulator_x64_out_dir, simulator_arm64_out_dir
+):
+  framework = os.path.join(dst, 'FlutterExtension.framework')
+  simulator_framework = os.path.join(dst, 'sim', 'FlutterExtension.framework')
+  arm64_framework = os.path.join(arm64_out_dir, 'FlutterExtension.framework')
+  simulator_x64_framework = os.path.join(simulator_x64_out_dir, 'FlutterExtension.framework')
+  simulator_arm64_framework = os.path.join(simulator_arm64_out_dir, 'FlutterExtension,.framework')
+
+  if not os.path.isdir(arm64_framework):
+    print('Cannot find alt extension safe iOS arm64 Framework at %s' % arm64_framework)
+    return 1
+
+  if not os.path.isdir(simulator_x64_framework):
+    print('Cannot find alt extension safe iOS x64 simulator Framework at %s' % simulator_x64_framework)
+    return 1
+
+  create_framework(
+      args, dst, framework, arm64_framework, simulator_framework, simulator_x64_framework,
+      simulator_arm64_framework, framework_name='FlutterExtension'
+  )
+  return 0
+
 def create_framework(  # pylint: disable=too-many-arguments
     args, dst, framework, arm64_framework, simulator_framework,
-    simulator_x64_framework, simulator_arm64_framework
+    simulator_x64_framework, simulator_arm64_framework, framework_name='Flutter'
 ):
-  arm64_dylib = os.path.join(arm64_framework, 'Flutter')
-  simulator_x64_dylib = os.path.join(simulator_x64_framework, 'Flutter')
-  simulator_arm64_dylib = os.path.join(simulator_arm64_framework, 'Flutter')
+  arm64_dylib = os.path.join(arm64_framework, framework_name)
+  simulator_x64_dylib = os.path.join(simulator_x64_framework, framework_name)
+  simulator_arm64_dylib = os.path.join(simulator_arm64_framework, framework_name)
   if not os.path.isfile(arm64_dylib):
     print('Cannot find iOS arm64 dylib at %s' % arm64_dylib)
     return 1
@@ -154,7 +183,7 @@ def create_framework(  # pylint: disable=too-many-arguments
   # Emit the framework for physical devices.
   shutil.rmtree(framework, True)
   shutil.copytree(arm64_framework, framework)
-  framework_binary = os.path.join(framework, 'Flutter')
+  framework_binary = os.path.join(framework, framework_name)
   process_framework(args, dst, framework_binary, framework_dsym)
 
   # Emit the framework for simulators.
@@ -162,7 +191,7 @@ def create_framework(  # pylint: disable=too-many-arguments
     shutil.rmtree(simulator_framework, True)
     shutil.copytree(simulator_arm64_framework, simulator_framework)
 
-    simulator_framework_binary = os.path.join(simulator_framework, 'Flutter')
+    simulator_framework_binary = os.path.join(simulator_framework, framework_name)
 
     # Create the arm64/x64 simulator fat framework.
     subprocess.check_call([
@@ -178,7 +207,7 @@ def create_framework(  # pylint: disable=too-many-arguments
   # exists.
   xcframeworks = [simulator_framework, framework]
   dsyms = [simulator_dsym, framework_dsym] if args.dsym else None
-  create_xcframework(location=dst, name='Flutter', frameworks=xcframeworks, dsyms=dsyms)
+  create_xcframework(location=dst, name=framework_name, frameworks=xcframeworks, dsyms=dsyms)
 
   # Add the x64 simulator into the fat framework.
   subprocess.check_call([
@@ -205,6 +234,10 @@ def zip_archive(dst):
       'extension_safe/Flutter.xcframework/ios-arm64/dSYMs/Flutter.framework.dSYM/Contents/Resources/DWARF/Flutter',  # pylint: disable=line-too-long
       'extension_safe/Flutter.xcframework/ios-arm64_x86_64-simulator/Flutter.framework/Flutter',
       'extension_safe/Flutter.xcframework/ios-arm64_x86_64-simulator/dSYMs/Flutter.framework.dSYM/Contents/Resources/DWARF/Flutter'  # pylint: disable=line-too-long
+      'alt_extension_safe/FlutterExtension.xcframework/ios-arm64/FlutterExtension.framework/FlutterExtension',
+      'alt_extension_safe/FlutterExtension.xcframework/ios-arm64/dSYMs/FlutterExtension.framework.dSYM/Contents/Resources/DWARF/FlutterExtension',  # pylint: disable=line-too-long
+      'alt_extension_safe/FlutterExtension.xcframework/ios-arm64_x86_64-simulator/FlutterExtension.framework/FlutterExtension',
+      'alt_extension_safe/FlutterExtension.xcframework/ios-arm64_x86_64-simulator/dSYMs/FlutterExtension.framework.dSYM/Contents/Resources/DWARF/FlutterExtension'  # pylint: disable=line-too-long
   ]
   embed_codesign_configuration(os.path.join(dst, 'entitlements.txt'), ios_file_with_entitlements)
 
@@ -221,6 +254,7 @@ def zip_archive(dst):
       'entitlements.txt',
       'without_entitlements.txt',
       'extension_safe/Flutter.xcframework',
+      'alt_extension_safe/FlutterExtension.xcframework',
   ],
                         cwd=dst)
 
@@ -243,6 +277,12 @@ def zip_archive(dst):
     renamed_dsym = extension_safe_dsym.replace('Flutter.framework.dSYM', 'Flutter.dSYM')
     os.rename(extension_safe_dsym, renamed_dsym)
     subprocess.check_call(['zip', '-r', 'extension_safe_Flutter.dSYM.zip', 'Flutter.dSYM'], cwd=dst)
+
+  alt_extension_safe_dsym = os.path.join(dst, 'alt_extension_safe', 'FlutterExtension.framework.dSYM')
+  if os.path.exists(extension_safe_dsym):
+    renamed_dsym = extension_safe_dsym.replace('FlutterExtension.framework.dSYM', 'FlutterExtension.dSYM')
+    os.rename(extension_safe_dsym, renamed_dsym)
+    subprocess.check_call(['zip', '-r', 'alt_extension_safe_FlutterExtension.dSYM.zip', 'FlutterExtension.dSYM'], cwd=dst)  
 
 
 def process_framework(args, dst, framework_binary, dsym):
