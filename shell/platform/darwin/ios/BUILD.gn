@@ -13,7 +13,15 @@ import("//flutter/shell/gpu/gpu.gni")
 import("//flutter/shell/platform/darwin/common/framework_common.gni")
 import("//flutter/testing/testing.gni")
 
-_flutter_framework_dir = "$root_out_dir/Flutter.framework"
+if (darwin_alt_extension_safe) {
+  _flutter_alias = "FlutterExtension"
+} else {
+  _flutter_alias = "Flutter"
+}
+
+_flutter_framework_dir = "$root_out_dir/$_flutter_alias.framework"
+
+_is_darwin_extension_safe = darwin_extension_safe || darwin_alt_extension_safe
 
 shell_gpu_configuration("ios_gpu_configuration") {
   enable_software = true
@@ -45,7 +53,7 @@ source_set("flutter_framework_source_arc") {
   cflags_objcc = flutter_cflags_objcc_arc
 
   defines = [ "FLUTTER_FRAMEWORK=1" ]
-  if (darwin_extension_safe) {
+  if (_is_darwin_extension_safe) {
     defines += [ "APPLICATION_EXTENSION_API_ONLY=1" ]
   }
   allow_circular_includes_from = [ ":flutter_framework_source" ]
@@ -190,7 +198,7 @@ source_set("flutter_framework_source") {
   sources += _flutter_framework_headers
 
   defines = [ "FLUTTER_FRAMEWORK=1" ]
-  if (darwin_extension_safe) {
+  if (_is_darwin_extension_safe) {
     defines += [ "APPLICATION_EXTENSION_API_ONLY=1" ]
   }
 
@@ -305,7 +313,7 @@ shared_library("ios_test_flutter") {
     "//flutter:config",
   ]
 
-  if (darwin_extension_safe) {
+  if (_is_darwin_extension_safe) {
     defines = [ "APPLICATION_EXTENSION_API_ONLY=1" ]
   }
 }
@@ -315,9 +323,9 @@ shared_library("create_flutter_framework_dylib") {
 
   output_name = "Flutter"
 
-  ldflags = [ "-Wl,-install_name,@rpath/Flutter.framework/Flutter" ]
+  ldflags = [ "-Wl,-install_name,@rpath/$_flutter_alias.framework/$_flutter_alias" ]
 
-  if (darwin_extension_safe) {
+  if (_is_darwin_extension_safe) {
     ldflags += [ "-fapplication-extension" ]
   }
 
@@ -335,7 +343,7 @@ copy("copy_dylib") {
   visibility = [ ":*" ]
 
   sources = [ "$root_out_dir/libFlutter.dylib" ]
-  outputs = [ "$_flutter_framework_dir/Flutter" ]
+  outputs = [ "$_flutter_framework_dir/$_flutter_alias" ]
 
   deps = [ ":create_flutter_framework_dylib" ]
 }
@@ -361,7 +369,11 @@ copy("copy_asan_runtime_dylib") {
 action("copy_framework_info_plist") {
   script = "//flutter/build/copy_info_plist.py"
   visibility = [ ":*" ]
-  sources = [ "framework/Info.plist" ]
+  if (darwin_alt_extension_safe) {
+    sources = [ "framework_alt_extension_safe/Info.plist" ]
+  } else {
+    sources = [ "framework/Info.plist" ]
+  }
   outputs = [ "$_flutter_framework_dir/Info.plist" ]
   args = [
     "--source",
@@ -375,7 +387,11 @@ action("copy_framework_info_plist") {
 
 copy("copy_framework_module_map") {
   visibility = [ ":*" ]
-  sources = [ "framework/module.modulemap" ]
+  if (darwin_alt_extension_safe) {
+    sources = [ "framework_alt_extension_safe/module.modulemap" ]
+  } else {
+    sources = [ "framework/module.modulemap" ]
+  }
   outputs = [ "$_flutter_framework_dir/Modules/module.modulemap" ]
 }
 
@@ -425,7 +441,11 @@ shared_library("copy_and_verify_framework_module") {
     "-fapplication-extension",
   ]
 
-  sources = [ "framework/Source/FlutterUmbrellaImport.m" ]
+  if (darwin_alt_extension_safe) {
+    sources = [ "framework_alt_extension_safe/Source/FlutterUmbrellaImport.m" ]
+  } else {
+    sources = [ "framework/Source/FlutterUmbrellaImport.m" ]
+  }
   deps = [
     ":copy_framework_headers",
     ":copy_framework_info_plist",
@@ -433,7 +453,7 @@ shared_library("copy_and_verify_framework_module") {
     ":copy_framework_privacy_manifest",
   ]
 
-  if (darwin_extension_safe) {
+  if (_is_darwin_extension_safe) {
     ldflags = [
       "-F$framework_search_path",
       "-fapplication-extension",
@@ -441,7 +461,7 @@ shared_library("copy_and_verify_framework_module") {
       "-fatal_warnings",
     ]
     deps += [ ":copy_dylib" ]
-    frameworks = [ "Flutter.framework" ]
+    frameworks = [ "$_flutter_alias.framework" ]
   }
 }
 
@@ -464,12 +484,12 @@ group("universal_flutter_framework") {
 
 action("flutter_framework") {
   script = "//flutter/sky/tools/create_xcframework.py"
-  outputs = [ "$root_out_dir/Flutter.xcframework" ]
+  outputs = [ "$root_out_dir/$_flutter_alias.xcframework" ]
   args = [
     "--frameworks",
     rebase_path("$_flutter_framework_dir"),
     "--name",
-    "Flutter",
+    "$_flutter_alias",
     "--location",
     rebase_path("$root_out_dir"),
   ]

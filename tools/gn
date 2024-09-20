@@ -62,6 +62,9 @@ def get_out_dir(args):
   if args.darwin_extension_safe:
     target_dir.append('extension_safe')
 
+  if args.darwin_alt_extension_safe:
+    target_dir.append('alt_extension_safe')  
+
   if args.slimpeller:
     target_dir.append('slimpeller')
 
@@ -761,6 +764,9 @@ def to_gn_args(args):
   if args.darwin_extension_safe:
     gn_args['darwin_extension_safe'] = True
 
+  if args.darwin_alt_extension_safe:
+    gn_args['darwin_alt_extension_safe'] = True
+    
   return gn_args
 
 
@@ -1188,6 +1194,13 @@ def parse_args(args):
       default=False,
       action='store_true',
       help='Whether the produced Flutter.framework is app extension safe. Only for iOS.'
+  )
+
+  parser.add_argument(
+      '--darwin-alt-extension-safe',
+      default=False,
+      action='store_true',
+      help='Same as [--darwin-extension-safe] but use FlutterExtension.framework name, instead of Flutter.framework. Only for iOS.'
   )
 
   # Verbose output.
