@@ -103,7 +103,7 @@ def main():
   )
 
   alt_extension_safe_dst = os.path.join(dst, 'alt_extension_safe')
-  create_extension_safe_framework(
+  create_alt_extension_safe_framework(
       args, alt_extension_safe_dst, '%s_alt_extension_safe' % arm64_out_dir,
       '%s_alt_extension_safe' % simulator_x64_out_dir, '%s_alt_extension_safe' % simulator_arm64_out_dir
   )
