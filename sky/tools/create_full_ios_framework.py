@@ -142,7 +142,7 @@ def create_alt_extension_safe_framework( # pylint: disable=too-many-arguments
   simulator_framework = os.path.join(dst, 'sim', 'FlutterExtension.framework')
   arm64_framework = os.path.join(arm64_out_dir, 'FlutterExtension.framework')
   simulator_x64_framework = os.path.join(simulator_x64_out_dir, 'FlutterExtension.framework')
-  simulator_arm64_framework = os.path.join(simulator_arm64_out_dir, 'FlutterExtension,.framework')
+  simulator_arm64_framework = os.path.join(simulator_arm64_out_dir, 'FlutterExtension.framework')
 
   if not os.path.isdir(arm64_framework):
     print('Cannot find alt extension safe iOS arm64 Framework at %s' % arm64_framework)
