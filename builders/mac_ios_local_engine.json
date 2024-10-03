@@ -793,7 +793,7 @@
                 "--rbe",
                 "--no-goma"
             ],
-            "name": "macos/host_debug",
+            "name": "host_debug",
             "description": "Builds a debug mode engine for a macOS host.",
             "ninja": {
                 "config": "host_debug",
@@ -824,7 +824,7 @@
                 "--rbe",
                 "--no-goma"
             ],
-            "name": "macos/host_profile",
+            "name": "host_profile",
             "description": "Builds a profile mode engine for a macOS host.",
             "ninja": {
                 "config": "host_profile",
@@ -855,7 +855,7 @@
                 "--rbe",
                 "--no-goma"
             ],
-            "name": "macos/host_release",
+            "name": "host_release",
             "description": "Builds a release mode engine for a macOS host.",
             "ninja": {
                 "config": "host_release",
@@ -886,7 +886,7 @@
                 "--rbe",
                 "--no-goma"
             ],
-            "name": "macos/host_debug_arm64",
+            "name": "host_debug_arm64",
             "description": "Builds a debug mode engine for a macOS host on arm64.",
             "ninja": {
                 "config": "host_debug_arm64",
@@ -918,7 +918,7 @@
                 "--rbe",
                 "--no-goma"
             ],
-            "name": "macos/host_profile_arm64",
+            "name": "host_profile_arm64",
             "description": "Builds a profile mode engine for a macOS host on arm64.",
             "ninja": {
                 "config": "host_profile_arm64",
@@ -950,7 +950,7 @@
                 "--rbe",
                 "--no-goma"
             ],
-            "name": "macos/host_release_arm64",
+            "name": "host_release_arm64",
             "description": "Builds a release mode engine for a macOS host on arm64.",
             "ninja": {
                 "config": "host_release_arm64",

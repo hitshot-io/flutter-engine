@@ -79,7 +79,7 @@ def main():
 
   copy_runtime(dst, arm64_out_dir, 'runtime')
   copy_runtime(dst, host_out_dir, 'host')
-  copy_runtime(dst, host_out_dir, 'host_arm64')
+  copy_runtime(dst, host_arm64_out_dir, 'host_arm64')
   copy_runtime(dst, simulator_x64_out_dir, 'simulator_x64')
   copy_runtime(dst, simulator_arm64_out_dir, 'simulator_arm64')
 
@@ -100,7 +100,7 @@ def main():
 
 def copy_runtime(dst, source_out_dir, runtime_name):
   runtime_out_dir = os.path.join(dst, runtime_name)
-  if not source_out_dir is None & os.path.isdir(source_out_dir):
+  if not source_out_dir is None and os.path.isdir(source_out_dir):
     shutil.rmtree(runtime_out_dir, True)
     shutil.copytree(source_out_dir, runtime_out_dir)
 
@@ -240,23 +240,17 @@ def zip_archive(dst):
   #
   # TODO(cbracken): remove these archives and the upload steps once we bundle
   # dSYMs in app archives. https://github.com/flutter/flutter/issues/116493
-  framework_dsym = os.path.join(dst, 'Flutter.framework.dSYM')
-  if os.path.exists(framework_dsym):
-    renamed_dsym = framework_dsym.replace('Flutter.framework.dSYM', 'Flutter.dSYM')
-    os.rename(framework_dsym, renamed_dsym)
-    subprocess.check_call(['zip', '-r', 'Flutter.dSYM.zip', 'Flutter.dSYM'], cwd=dst)
-
   extension_safe_dsym = os.path.join(dst, 'extension_safe', 'Flutter.framework.dSYM')
   if os.path.exists(extension_safe_dsym):
     renamed_dsym = extension_safe_dsym.replace('Flutter.framework.dSYM', 'Flutter.dSYM')
     os.rename(extension_safe_dsym, renamed_dsym)
-    subprocess.check_call(['zip', '-r', 'extension_safe_Flutter.dSYM.zip', 'Flutter.dSYM'], cwd=dst)
+    subprocess.check_call(['zip', '-r', 'extension_safe_Flutter.dSYM.zip', 'extension_safe/Flutter.dSYM'], cwd=dst)
 
   alt_extension_safe_dsym = os.path.join(dst, 'alt_extension_safe', 'FlutterExtension.framework.dSYM')
   if os.path.exists(alt_extension_safe_dsym):
     renamed_dsym = alt_extension_safe_dsym.replace('FlutterExtension.framework.dSYM', 'FlutterExtension.dSYM')
     os.rename(alt_extension_safe_dsym, renamed_dsym)
-    subprocess.check_call(['zip', '-r', 'alt_extension_safe_FlutterExtension.dSYM.zip', 'FlutterExtension.dSYM'], cwd=dst)  
+    subprocess.check_call(['zip', '-r', 'alt_extension_safe_FlutterExtension.dSYM.zip', 'alt_extension_safe/FlutterExtension.dSYM'], cwd=dst)  
 
 
 def process_framework(args, dst, framework_binary, dsym, framework_name='Flutter'):
